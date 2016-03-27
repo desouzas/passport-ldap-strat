@@ -10,8 +10,6 @@ class mockLdapServer {
     /**
      * Constructor.<br>
      * Sets up an ldap server's configs for localhost.
-     *
-     * @return {void}
      */
     constructor() {
         this.hostname = 'localhost';
@@ -84,7 +82,7 @@ class mockLdapServer {
     }
 
     /**
-     * Perfroms a bind for a specified dn.
+     * Performs a bind for a specified dn.
      *
      * @param {object} req The request object containing the dn and credentials
      * @param {object} res The result object
@@ -152,10 +150,10 @@ class mockLdapServer {
     }
 
     /**
-     * Parses a path string into a array path to traverse the directory.
+     * Parses a path string into an array path to traverse the directory.
      *
      * @param {string} dn The path string
-     * @param {object} init Object to set keys on {optional}
+     * @param {array} init Array to add to {optional}
      * @return {array} The path keys
      */
     static _extractKeys(dn, init) {

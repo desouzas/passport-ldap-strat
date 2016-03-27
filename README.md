@@ -68,7 +68,7 @@ key | type | description
 base | string | The suffix to use when binding.
 socketPath | integer | The ldap server port.
 server | object | Contains the property `url` - the ldap server url.
-search | object | Contains the property `filter` - the search filter. The filter can contain a `${varName}` variable and it will be replaced by the login username. `scope` and `sub` may also be specified. See `ldapjs` docs for details.
+search | object | Contains the property `filter` - the search filter. The filter can contain a `${varName}` variable and it will be replaced by the login username. `scope` and `base` may also be specified. See `ldapjs` docs for details.
 passwordField | string | The request field to retrieve the password value from.
 uidTag | string | The tag to use when binding the user (e.g. `uid` or `cn`).
 usernameField | string | The request field to retrieve the username value from.
