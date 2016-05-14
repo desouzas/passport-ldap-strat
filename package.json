@@ -1,13 +1,19 @@
 {
   "name": "passport-ldap-strat",
+  "contributors":[
+    {
+      "name": "Ben Plessinger"
+    }
+  ]
   "version": "0.0.1",
   "description": "ldap strategy for passport",
-  "main": "lib/index.js",
+  "main": "dist/ldap-strat.js",
   "author": {
     "name": "Stephan DeSouza"
   },
   "scripts": {
-    "test": "mocha --compilers js:babel-register test/suite.js"
+    "test": "mocha --compilers js:babel-register test/suite.js",
+    "install": "mkdir dist; babel lib/ldap-strat.js > dist/ldap-strat.js"
   },
   "dependencies": {
     "babel-polyfill": "^6.6.1",
