@@ -78,6 +78,46 @@ describe('when constructed', () => {
 });
 
 describe('when authenticate is called', () => {
+    it('with bad server name, throw an error', (done) => {
+        let strat = new ldapStrat(
+            sessionUtil.getOptions({
+                'uidTag': 'uid',
+                'server': {
+                    'url': 'ldap://nosuchserver:389'
+                }
+            }),
+            verify
+        );
+        strat.authenticate({'body': {'username': 'testuser', 'password': 'test123'}})
+        .then(() => {
+            return done(new Error('expected an error'));
+        })
+        .catch((err) => {
+            should(err).have.property('code', 'ENOTFOUND');
+            return done();
+        });
+    });
+    it('with unresponsive host, throw an error', (done) => {
+        let strat = new ldapStrat(
+            sessionUtil.getOptions({
+                'uidTag': 'uid',
+                // This automatically tries to connect to localhost
+                'url': 'ldap://'
+            }),
+            verify
+        );
+        strat.authenticate({'body': {'username': 'testuser', 'password': 'test123'}})
+        .then(() => {
+            return done(new Error('expected an error'));
+        })
+        .catch((err) => {
+            should(err).have.property('code', 'ECONNREFUSED');
+            return done();
+        });
+    });
+});
+
+describe('when authenticate is called', () => {
 
     let mockServer = null;
 
