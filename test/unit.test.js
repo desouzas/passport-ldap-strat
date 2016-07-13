@@ -1,15 +1,14 @@
+import should from 'should';
+import sinon from 'sinon';
+
 import ldapStrat from '../';
 import * as constants from './fixtures/constants';
-import mockLdapServer from './fixtures/ldap-server';
+import * as client from './fixtures/mock-ldap-client';
 import sessionUtil from './fixtures/session-util';
-import should from 'should';
 
-let verify = (data, done) => {
-    return done(null, data);
-};
+const verify = (data, done) => done(null, data);
 
 describe('when imported', () => {
-
     it('should be a class', (done) => {
         should(ldapStrat).be.type('function');
         return done();
@@ -17,20 +16,18 @@ describe('when imported', () => {
 
     it('should be constructable', (done) => {
         should(() => {
-            let strat = new ldapStrat(sessionUtil.getOptions(), verify);
+            const strat = new ldapStrat(sessionUtil.getOptions(), verify);
             should(strat).be.type('object');
             should(strat).ok();
         }).not.throw();
         return done();
     });
-
 });
 
 describe('when constructed', () => {
-
     it('with no parameters, should throw an error', (done) => {
         should(() => {
-            let strat = new ldapStrat();
+            const strat = new ldapStrat();
             should.not.exist(strat);
         }).throw(Error);
         return done();
@@ -38,7 +35,7 @@ describe('when constructed', () => {
 
     it('with null options, should throw an error', (done) => {
         should(() => {
-            let strat = new ldapStrat(null);
+            const strat = new ldapStrat(null);
             should.not.exist(strat);
         }).throw(Error);
         return done();
@@ -46,7 +43,7 @@ describe('when constructed', () => {
 
     it('with no verify, should not throw an error', (done) => {
         should(() => {
-            let strat = new ldapStrat(sessionUtil.getOptions());
+            const strat = new ldapStrat(sessionUtil.getOptions());
             should(strat).be.type('object');
             should(strat).ok();
         }).not.throw();
@@ -55,7 +52,7 @@ describe('when constructed', () => {
 
     it('should not throw an error', (done) => {
         should(() => {
-            let strat = new ldapStrat(sessionUtil.getOptions(), verify);
+            const strat = new ldapStrat(sessionUtil.getOptions(), verify);
             should(strat).be.type('object');
             should(strat).ok();
         }).not.throw();
@@ -63,9 +60,9 @@ describe('when constructed', () => {
     });
 
     it('should set some properties', (done) => {
-        let options = sessionUtil.getOptions();
+        const options = sessionUtil.getOptions();
         should(() => {
-            let strat = new ldapStrat(options, verify);
+            const strat = new ldapStrat(options, verify);
             should(strat).be.type('object');
             should(strat).ok();
             should(strat).have.property('name', 'ldap');
@@ -74,126 +71,100 @@ describe('when constructed', () => {
         }).not.throw();
         return done();
     });
-
 });
 
-describe('when authenticate is called', () => {
-    it('with bad server name, throw an error', (done) => {
-        let strat = new ldapStrat(
-            sessionUtil.getOptions({
-                'uidTag': 'uid',
-                'server': {
-                    'url': 'ldap://nosuchserver:389'
-                }
-            }),
-            verify
-        );
-        strat.authenticate({'body': {'username': 'testuser', 'password': 'test123'}})
-        .then(() => {
-            return done(new Error('expected an error'));
-        })
-        .catch((err) => {
-            should(err).have.property('code', 'ENOTFOUND');
-            return done();
-        });
-    });
-    it('with unresponsive host, throw an error', (done) => {
-        let strat = new ldapStrat(
-            sessionUtil.getOptions({
-                'uidTag': 'uid',
-                // This automatically tries to connect to localhost
-                'url': 'ldap://'
-            }),
-            verify
-        );
-        strat.authenticate({'body': {'username': 'testuser', 'password': 'test123'}})
-        .then(() => {
-            return done(new Error('expected an error'));
-        })
-        .catch((err) => {
-            should(err).have.property('code', 'ECONNREFUSED');
-            return done();
-        });
-    });
-});
+describe('for client methods', () => {
+    const strat = new ldapStrat(
+        sessionUtil.getOptions({
+            'uidTag': 'uid',
+            'url': `${constants.MOCK_SERVER_URL}:${constants.MOCK_SERVER_PORT}`
+        }),
+        verify
+    );
 
-describe('when authenticate is called', () => {
-
-    let mockServer = null;
-
-    // setup mock ldap server to test against
-    before((done) => {
-        mockServer = new mockLdapServer();
-        mockServer.start(constants.MOCK_SERVER_PORT)
-            .then(() => {
-                return done();
-            });
+    before(() => {
+        sinon.stub(ldapStrat, '_createLdapClient').returns(client.mockLdapClient);
     });
 
     after(() => {
-        if (!mockServer) {
-            return;
-        }
-        mockServer.close();
-        mockServer = null;
+        ldapStrat._createLdapClient.restore();
     });
 
-    let strat = null;
-
-    // setup a new strat to test with
     beforeEach(() => {
-        strat = new ldapStrat(
-            sessionUtil.getOptions({
-                'uidTag': 'uid',
-                'url': `${constants.MOCK_SERVER_URL}:${constants.MOCK_SERVER_PORT}`
-            }),
-            verify
-        );
+        client.mockLdapClient.bind.reset();
+        client.mockLdapClient.search.reset();
+        client.mockLdapClient.mockSearchRes.on.reset();
     });
 
-    afterEach(() => {
-        strat = null;
-    });
+    describe('when authenticate is called', () => {
+        it('should reject for bad server name error event', () => {
+            client.mockLdapClient.eventError = client.notFoundError;
+            const res = strat.authenticate({'body': {'username': 'testuser', 'password': 'test123'}});
+            client.mockLdapClient.eventError = null;
+            should(res).be.a.Promise();
+            should(client.mockLdapClient.bind.calledOnce).be.ok();
+            return should(res).be.rejectedWith({ 'code': 'ENOTFOUND' })
+        });
 
-    it('with no params, should throw an error', (done) => {
-        strat.authenticate()
-        .then(() => {
-            return done(new Error('expected an error'));
-        })
-        .catch(() => {
-            return done();
+        it('should reject for unresponsive host error event', () => {
+            client.mockLdapClient.eventError = client.connRefusedError;
+            const res = strat.authenticate({'body': {'username': 'testuser', 'password': 'test123'}});
+            client.mockLdapClient.eventError = null;
+            should(res).be.a.Promise();
+            should(client.mockLdapClient.bind.calledOnce).be.ok();
+            return should(res).be.rejectedWith({ 'code': 'ECONNREFUSED' });
+        });
+
+        it('with no params, should throw an error', () => {
+            const res = strat.authenticate();
+            should(res).be.a.Promise();
+            return should(res).be.rejectedWith({ 'message': 'Missing req parameter.' });
+        });
+
+        it('with null req, should throw an error', () => {
+            const res = strat.authenticate(null);
+            should(res).be.a.Promise();
+            return should(res).be.rejectedWith({ 'message': 'Missing req parameter.' });
+        });
+
+        it('with req, but no body, should throw an error', () => {
+            const res = strat.authenticate({});
+            should(res).be.a.Promise();
+            return should(res).be.rejectedWith({ 'message': 'Missing username or password parameters.' });
+        });
+
+        it('should not throw an error', () => {
+            const res = strat.authenticate({'body': {'username': 'testuser', 'password': 'test123'}});
+            should(res).be.a.Promise();
+            return should(res).be.fulfilled();
+        });
+
+        describe('when _bind is called', () => {
+            it('should bind and resolve a promise', () => {
+                const res = strat._bind(client.mockLdapClient, {'username': 'testuser', 'password': 'test123'});
+                should(res).be.a.Promise();
+                should(client.mockLdapClient.bind.calledOnce).be.ok();
+                return should(res).be.fulfilled();
+            });
+        });
+
+        describe('when _search is called', () => {
+            it('should search and resolve a promise', () => {
+                const res = strat._search(client.mockLdapClient, {});
+                should(res).be.a.Promise();
+                should(client.mockLdapClient.mockSearchRes.on.callCount).be.eql(4);
+                return should(res).be.fulfilled();
+            });
+
+            it('should reject a promise on search error', () => {
+                client.mockLdapClient.searchError = client.ldapSearchError;
+                const res = strat._search(client.mockLdapClient, {});
+                should(client.mockLdapClient.search.calledOnce).be.ok();
+                should(res).be.a.Promise();
+                should(client.mockLdapClient.mockSearchRes.on.callCount).be.eql(4);
+                client.mockLdapClient.searchError = null;
+                return should(res).be.rejectedWith({ code: 'LDAPSEARCHERR' });
+            });
         });
     });
-
-    it('with null req, should throw an error', (done) => {
-        strat.authenticate(null)
-        .then(() => {
-            return done(new Error('expected an error'));
-        })
-        .catch(() => {
-            return done();
-        });
-    });
-
-    it('with req, but no body, should throw an error', (done) => {
-        strat.authenticate({})
-        .then(() => {
-            return done(new Error('expected an error'));
-        })
-        .catch(() => {
-            return done();
-        });
-    });
-
-    it('should not throw an error', (done) => {
-        strat.authenticate({'body': {'username': 'testuser', 'password': 'test123'}})
-        .then(() => {
-            return done();
-        })
-        .catch((err) => {
-            return done(err);
-        });
-    });
-
-
 });

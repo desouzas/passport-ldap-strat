@@ -5,19 +5,15 @@ import sessionUtil from './fixtures/session-util';
 import should from 'should';
 
 describe('when constructed with', () => {
-
     let mockServer = null;
-    let verify = (data, done) => {
-        return done(null, data);
-    };
+    const verify = (data, done) => done(null, data);
 
     // setup mock ldap server to test against
     before((done) => {
         mockServer = new mockLdapServer();
-        mockServer.start(constants.MOCK_SERVER_PORT)
-            .then(() => {
-                return done();
-            });
+        mockServer
+            .start(constants.MOCK_SERVER_PORT)
+            .then(() => done());
     });
 
     after(() => {
@@ -29,8 +25,8 @@ describe('when constructed with', () => {
     });
 
 
-    it('no search, authenticate should sucessfully auth and return the dn', (done) => {
-        let strat = new ldapStrat(
+    it('no search, authenticate should sucessfully auth and return the dn', () => {
+        const strat = new ldapStrat(
             sessionUtil.getOptions({
                 'uidTag': 'uid',
                 'base': 'ou=people,dc=dev,ou=passport-ldap-strat',
@@ -38,19 +34,12 @@ describe('when constructed with', () => {
             }),
             verify
         );
-        strat.authenticate({'body': {'username': 'testuser', 'password': 'test123'}})
-        .then((res) => {
-            should.exist(res);
-            should(res).equal('uid=testuser,ou=people,dc=dev,ou=passport-ldap-strat');
-            return done();
-        })
-        .catch((err) => {
-            return done(err);
-        });
+        const res = strat.authenticate({'body': {'username': 'testuser', 'password': 'test123'}});
+        return should(res).be.fulfilledWith('uid=testuser,ou=people,dc=dev,ou=passport-ldap-strat');
     });
 
     it('search, authenticate should sucessfully auth and return the user info', (done) => {
-        let strat = new ldapStrat(
+        const strat = new ldapStrat(
             sessionUtil.getOptions({
                 'uidTag': 'uid',
                 'base': 'ou=people,dc=dev,ou=passport-ldap-strat',
@@ -71,13 +60,11 @@ describe('when constructed with', () => {
             should(res[0]).have.property('name', 'testuser');
             return done();
         })
-        .catch((err) => {
-            return done(err);
-        });
+        .catch(err => done(err));
     });
 
     it('search, authenticate should sucessfully auth and return the user groups', (done) => {
-        let strat = new ldapStrat(
+        const strat = new ldapStrat(
             sessionUtil.getOptions({
                 'uidTag': 'uid',
                 'base': 'ou=people,dc=dev,ou=passport-ldap-strat',
@@ -101,9 +88,6 @@ describe('when constructed with', () => {
             should(res[1]).have.property('cn', 'developers');
             return done();
         })
-        .catch((err) => {
-            return done(err);
-        });
+        .catch(err => done(err));
     });
-
 });
