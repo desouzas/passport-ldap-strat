@@ -7,10 +7,7 @@ import sessionUtil from './fixtures/session-util';
 import passport from 'passport';
 
 describe('when using passport', () => {
-
-    const verify = (data, done) => {
-        return done(null, data);
-    };
+    const verify = (data, done) => done(null, data);
     let mockServer = null;
     const app = express();
     const options = sessionUtil.getOptions({
@@ -22,10 +19,9 @@ describe('when using passport', () => {
     // setup mock ldap server to test against
     before((done) => {
         mockServer = new mockLdapServer();
-        mockServer.start(constants.MOCK_SERVER_PORT)
-            .then(() => {
-                return done();
-            });
+        mockServer
+            .start(constants.MOCK_SERVER_PORT)
+            .then(() => done());
     });
 
     after(() => {
@@ -37,7 +33,6 @@ describe('when using passport', () => {
     });
 
     describe('with invalid credentials', () => {
-
         it('`badpass` password, should return InvalidCredentialsError', (done) => {
             passport.use(new ldapStrat(options, verify));
             app.use(passport.initialize());
@@ -88,11 +83,9 @@ describe('when using passport', () => {
                 return done();
             })({'body': {'username': 'notauser', 'password': 'test123'}}, {});
         });
-
     });
 
     describe('with valid credentials for', () => {
-
         it('`testuser`, should return user bind dn', (done) => {
             passport.use(new ldapStrat(options, verify));
             app.use(passport.initialize());
@@ -124,11 +117,9 @@ describe('when using passport', () => {
                 return done();
             })({'body': {'username': 'randomuser', 'password': 'test123'}}, {});
         });
-
     });
 
     describe('with valid credentials and search options', () => {
-
         const options = sessionUtil.getOptions({
             'uidTag': 'uid',
             'base': 'ou=people,dc=dev,ou=passport-ldap-strat',
@@ -160,7 +151,5 @@ describe('when using passport', () => {
                 return done();
             })({'body': {'username': 'testuser', 'password': 'test123'}}, {});
         });
-
     });
-
 });

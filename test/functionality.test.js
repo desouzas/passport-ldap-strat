@@ -5,19 +5,15 @@ import sessionUtil from './fixtures/session-util';
 import should from 'should';
 
 describe('when constructed with', () => {
-
     let mockServer = null;
-    const verify = (data, done) => {
-        return done(null, data);
-    };
+    const verify = (data, done) => done(null, data);
 
     // setup mock ldap server to test against
     before((done) => {
         mockServer = new mockLdapServer();
-        mockServer.start(constants.MOCK_SERVER_PORT)
-            .then(() => {
-                return done();
-            });
+        mockServer
+            .start(constants.MOCK_SERVER_PORT)
+            .then(() => done());
     });
 
     after(() => {
@@ -64,9 +60,7 @@ describe('when constructed with', () => {
             should(res[0]).have.property('name', 'testuser');
             return done();
         })
-        .catch((err) => {
-            return done(err);
-        });
+        .catch(err => done(err));
     });
 
     it('search, authenticate should sucessfully auth and return the user groups', (done) => {
@@ -94,9 +88,6 @@ describe('when constructed with', () => {
             should(res[1]).have.property('cn', 'developers');
             return done();
         })
-        .catch((err) => {
-            return done(err);
-        });
+        .catch(err => done(err));
     });
-
 });

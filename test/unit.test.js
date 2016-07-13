@@ -6,9 +6,7 @@ import * as constants from './fixtures/constants';
 import * as client from './fixtures/mock-ldap-client';
 import sessionUtil from './fixtures/session-util';
 
-const verify = (data, done) => {
-    return done(null, data);
-};
+const verify = (data, done) => done(null, data);
 
 describe('when imported', () => {
     it('should be a class', (done) => {

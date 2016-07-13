@@ -88,7 +88,6 @@ var Strategy = function (_ParentStrategy) {
                 _this2._bind(client, req.body).then(function (res) {
                     return _this2._success(res, resolve);
                 }).catch(function (err) {
-                    // console.log('failed auth', err);
                     return _this2._fail(err, reject);
                 });
             });
@@ -159,8 +158,8 @@ var Strategy = function (_ParentStrategy) {
                         // TODO: emit event
                         results.push(reference.uris);
                     });
+                    // TODO: emit event
                     res.on('error', function (err) {
-                        // TODO: emit event
                         return reject(err);
                     });
                     res.on('end', function (result) {
