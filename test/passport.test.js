@@ -8,12 +8,12 @@ import passport from 'passport';
 
 describe('when using passport', () => {
 
-    let verify = (data, done) => {
+    const verify = (data, done) => {
         return done(null, data);
     };
     let mockServer = null;
-    let app = express();
-    let options = sessionUtil.getOptions({
+    const app = express();
+    const options = sessionUtil.getOptions({
         'uidTag': 'uid',
         'base': 'ou=people,dc=dev,ou=passport-ldap-strat',
         'url': `${constants.MOCK_SERVER_URL}:${constants.MOCK_SERVER_PORT}`
@@ -129,7 +129,7 @@ describe('when using passport', () => {
 
     describe('with valid credentials and search options', () => {
 
-        let options = sessionUtil.getOptions({
+        const options = sessionUtil.getOptions({
             'uidTag': 'uid',
             'base': 'ou=people,dc=dev,ou=passport-ldap-strat',
             'url': `${constants.MOCK_SERVER_URL}:${constants.MOCK_SERVER_PORT}`,
