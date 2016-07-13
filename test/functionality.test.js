@@ -29,7 +29,7 @@ describe('when constructed with', () => {
     });
 
 
-    it('no search, authenticate should sucessfully auth and return the dn', (done) => {
+    it('no search, authenticate should sucessfully auth and return the dn', () => {
         let strat = new ldapStrat(
             sessionUtil.getOptions({
                 'uidTag': 'uid',
@@ -38,15 +38,8 @@ describe('when constructed with', () => {
             }),
             verify
         );
-        strat.authenticate({'body': {'username': 'testuser', 'password': 'test123'}})
-        .then((res) => {
-            should.exist(res);
-            should(res).equal('uid=testuser,ou=people,dc=dev,ou=passport-ldap-strat');
-            return done();
-        })
-        .catch((err) => {
-            return done(err);
-        });
+        let res = strat.authenticate({'body': {'username': 'testuser', 'password': 'test123'}});
+        return should(res).be.fulfilledWith('uid=testuser,ou=people,dc=dev,ou=passport-ldap-strat');
     });
 
     it('search, authenticate should sucessfully auth and return the user info', (done) => {
