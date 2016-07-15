@@ -138,33 +138,33 @@ describe('for client methods', () => {
             should(res).be.a.Promise();
             return should(res).be.fulfilled();
         });
+    });
 
-        describe('when _bind is called', () => {
-            it('should bind and resolve a promise', () => {
-                const res = strat._bind(client.mockLdapClient, {'username': 'testuser', 'password': 'test123'});
-                should(res).be.a.Promise();
-                should(client.mockLdapClient.bind.calledOnce).be.ok();
-                return should(res).be.fulfilled();
-            });
+    describe('when _bind is called', () => {
+        it('should bind and resolve a promise', () => {
+            const res = strat._bind(client.mockLdapClient, {'username': 'testuser', 'password': 'test123'});
+            should(res).be.a.Promise();
+            should(client.mockLdapClient.bind.calledOnce).be.ok();
+            return should(res).be.fulfilled();
+        });
+    });
+
+    describe('when _search is called', () => {
+        it('should search and resolve a promise', () => {
+            const res = strat._search(client.mockLdapClient, {});
+            should(res).be.a.Promise();
+            should(client.mockLdapClient.mockSearchRes.on.callCount).be.eql(4);
+            return should(res).be.fulfilled();
         });
 
-        describe('when _search is called', () => {
-            it('should search and resolve a promise', () => {
-                const res = strat._search(client.mockLdapClient, {});
-                should(res).be.a.Promise();
-                should(client.mockLdapClient.mockSearchRes.on.callCount).be.eql(4);
-                return should(res).be.fulfilled();
-            });
-
-            it('should reject a promise on search error', () => {
-                client.mockLdapClient.searchError = client.ldapSearchError;
-                const res = strat._search(client.mockLdapClient, {});
-                should(client.mockLdapClient.search.calledOnce).be.ok();
-                should(res).be.a.Promise();
-                should(client.mockLdapClient.mockSearchRes.on.callCount).be.eql(4);
-                client.mockLdapClient.searchError = null;
-                return should(res).be.rejectedWith({ code: 'LDAPSEARCHERR' });
-            });
+        it('should reject a promise on search error', () => {
+            client.mockLdapClient.searchError = client.ldapSearchError;
+            const res = strat._search(client.mockLdapClient, {});
+            should(client.mockLdapClient.search.calledOnce).be.ok();
+            should(res).be.a.Promise();
+            should(client.mockLdapClient.mockSearchRes.on.callCount).be.eql(4);
+            client.mockLdapClient.searchError = null;
+            return should(res).be.rejectedWith({ code: 'LDAPSEARCHERR' });
         });
     });
 });
